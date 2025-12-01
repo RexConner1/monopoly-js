@@ -2,6 +2,7 @@
 	"use strict";
 	
 	var precondition = require('@infrastructure/contract').precondition;
+	let constants = require('@infrastructure/constants');
 	
 	exports.start = function () {
 		return new ConfigureGameTask();
@@ -40,10 +41,10 @@
 		this._playerSlots.take(1).subscribe(function (slots) {
 			slots.push({ type: type });
 			playerSlots.onNext(slots);
-			if (slots.length === 8) {
+			if (slots.length === constants.MAX_NUMBER_OF_PLAYERS) {
 				canAddPlayerSlot.onNext(false);
 			}
-			if (slots.length > 2) {
+			if (slots.length > constants.MIN_NUMBER_OF_PLAYERS - 1) {
 				configurationValid.onNext(true);
 			}
 		});
@@ -64,7 +65,7 @@
 				canAddPlayerSlot.onNext(true);
 			}
 			
-			if (slots.length < 3) {
+			if (slots.length < constants.MIN_NUMBER_OF_PLAYERS) {
 				configurationValid.onNext(false);
 			}
 		});

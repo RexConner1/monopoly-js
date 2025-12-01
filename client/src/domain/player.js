@@ -6,14 +6,15 @@
 	
 	var precondition = require('@infrastructure/contract').precondition;
 	var i18n = require('@i18n/i18n').i18n();
+	let constants = require('@infrastructure/constants');
 	
 	exports.isPlayer = function (candidate) {
 		return candidate instanceof Player;
 	};
 	
 	exports.newPlayers = function (playerConfigurations, boardParameters) {
-		precondition(_.isArray(playerConfigurations) && playerConfigurations.length >= 3,
-			'Creating players require at least 3 player configurations');
+		precondition(_.isArray(playerConfigurations) && playerConfigurations.length >= constants.MIN_NUMBER_OF_PLAYERS,
+			`Creating players require at least ${constants.MIN_NUMBER_OF_PLAYERS} player configurations`);
 		precondition(_.isNumber(boardParameters.startMoney) && boardParameters.startMoney,
 			'Creating players require an amount of money each player starts with');
 		precondition(_.isNumber(boardParameters.boardSize) && boardParameters.boardSize > 0,

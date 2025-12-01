@@ -2,6 +2,7 @@
 	"use strict";
 	
 	var precondition = require('@infrastructure/contract').precondition;
+	let constants = require('@infrastructure/constants');
 	
 	var Property = require('@domain/property');
 	var PropertyGroup = require('@domain/property-group');
@@ -16,8 +17,8 @@
 			squares: standardSquares(properties),
 			properties: properties,
 			jailPosition: 10,
-			jailBailout: 50,
-			startMoney: 1500,
+			jailBailout: constants.JAIL_BAILOUT,
+			startMoney: constants.STARTING_MONEY,
 			salary: 200
 		});
 	};
