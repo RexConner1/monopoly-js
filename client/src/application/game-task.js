@@ -1,57 +1,65 @@
-(function() {
-	"use strict";
-	
-	var Board = require('@domain/board');
-	var PlayGameTask = require('@app/play-game-task');
-	var ConfigureGameTask = require('@app/configure-game-task');
-	
-	exports.start = function () {
-		return new GameTask();
-	};
+"use strict";
 
-	function GameTask() {
+const Board = require("@domain/board");
+const PlayGameTask = require("@app/play-game-task");
+const ConfigureGameTask = require("@app/configure-game-task");
+
+exports.start = function () {
+	return new GameTask();
+};
+
+class GameTask {
+	constructor() {
 		this._status = new Rx.BehaviorSubject(configuringStatus(this));
 	}
-	
-	function configuringStatus(self) {
-		var task = ConfigureGameTask.start();
-		task.playerSlots().last()
-			.subscribe(function (players) {
-				startGame(players, self);
-			});
-		
-		return {
-			statusName: 'configuring',
-			match: function (visitor) {
-				visitor.configuring(task);
-			}
-		};
-	}
-	
-	function playingStatus(players, self) {
-		var gameConfiguration = { board: Board.standard(), players: players, options: { fastDice: false }};
-		var task = PlayGameTask.start(gameConfiguration);
-		task.completed().subscribe(function () {
-			newGame(self);
-		});
-				
-		return {
-			statusName: 'playing',
-			match: function (visitor) {
-				visitor.playing(task);
-			}
-		};
-	}
-	
-	function newGame(self) {
-		self._status.onNext(configuringStatus(self));
-	}
-	
-	function startGame(players, self) {
-		self._status.onNext(playingStatus(players, self));
-	}
-	
-	GameTask.prototype.status = function () {
+
+	status() {
 		return this._status.asObservable();
+	}
+}
+
+const configuringStatus = (self) => {
+	const task = ConfigureGameTask.start();
+
+	task.playerSlots()
+		.last()
+		.subscribe((players) => {
+			startGame(players, self);
+		});
+
+	return {
+		statusName: "configuring",
+		match(visitor) {
+			visitor.configuring(task);
+		}
 	};
-}());
+};
+
+const playingStatus = (players, self) => {
+	const gameConfiguration = {
+		board: Board.standard(),
+		players: players,
+		options: { fastDice: false }
+	};
+
+	const task = PlayGameTask.start(gameConfiguration);
+
+	task.completed().subscribe(() => {
+		newGame(self);
+	});
+
+	return {
+		statusName: "playing",
+		match(visitor) {
+			visitor.playing(task);
+		}
+	};
+};
+
+const newGame = (self) => {
+	self._status.onNext(configuringStatus(self));
+};
+
+const startGame = (players, self) => {
+	self._status.onNext(playingStatus(players, self));
+};
