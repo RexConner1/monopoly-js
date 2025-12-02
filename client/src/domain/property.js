@@ -1,179 +1,165 @@
-(function() {
-	"use strict";
-	
-	var precondition = require('@infrastructure/contract').precondition;
+"use strict";
 
-	var PropertyGroup = require('@domain/property-group');
-	
-	exports.isProperty = function (candidate) {
-		return candidate instanceof Property;
-	};
-	
-	exports.estate = function (id, group, prices) {
-		precondition(_.isString(id) && id.length > 0, 'Estate requires an id');
-		precondition(group && PropertyGroup.isGroup(group), 'Estate requires a group');
-		precondition(_.isNumber(prices.value) && prices.value > 0, 'Estate requires a price');
-		precondition(_.isNumber(prices.rent) && prices.rent > 0, 'Estate requires a rent');
-		
-		return new Property({
-			id: id,
-			group: group,
-			type: 'estate',
-			price: prices.value,
-			rent: estateRent(prices.rent, group)
-		});
-	};
-	
-	function estateRent(baseRent, group) {
-		return function (ownerProperties) {
-			var multiplier = (ownsAllEstatesInGroup(group, ownerProperties) ? 2 : 1);
-			return { amount: baseRent * multiplier };
-		};
-	}
-	
-	function ownsAllEstatesInGroup(group, properties) {
-		var estatesInGroup = group.properties();
-		return _.every(estatesInGroup, function (estate) {
-			var id = estate.id();
-			
-			return _.contains(_.map(properties, function (property) { return property.id(); }), id);
-		});
-	}
-	
-	exports.company = function (id, group) {
-		precondition(_.isString(id) && id.length > 0, 'Company requires an id');
-		precondition(group && PropertyGroup.isGroup(group), 'Creating a company requires a group');
-		
-		return new Property({
-			id: id,
-			group: group,
-			type: 'company',
-			price: group.propertyValue(),
-			rent: companyRent(group)
-		});
-	};
-	
-	function companyRent(group) {
-		return function (ownerProperties) {
-			var multiplier = allCompanies(group, ownerProperties) ? group.multipliers()[1] : group.multipliers()[0];
-			return {multiplier: multiplier};
-		};
-	}
-	
-	function allCompanies(group, properties) {
-		return _.reduce(properties, function (count, property) {
-			if (_.contains(_.map(group.properties(), propertyId), property.id())) {
-				return count + 1;
-			}
-			
-			return count;
-		}, 0) === 2;
-	}
-	
-	exports.railroad = function (id, group) {
-		precondition(_.isString(id) && id.length > 0, 'Railroad requires an id');
-		precondition(group && PropertyGroup.isGroup(group), 'Railroad requires a group');
-		
-		return new Property({
-			id: id,
-			group: group,
-			type: 'railroad',
-			price: group.propertyValue(),
-			rent: railroadRent(group)
-		});
-	};
-	
-	function railroadRent(group) {
-		return function (ownerProperties) {
-			var count = railroadCountIn(group, ownerProperties);
-			return { amount: group.baseRent() * Math.pow(2, count - 1) };
-		};
-	}
-	
-	function railroadCountIn(group, properties) {
-		return _.reduce(properties, function (count, property) {
-			if (_.contains(_.map(group.properties(), propertyId), property.id())) {
-				return count + 1;
-			}
-			
-			return count;
-		}, 0);
-	}
-	
-	function propertyId(property) {
-		return property.id();
-	}
-	
-	function Property(info) {
+const { precondition } = require("@infrastructure/contract");
+const PropertyGroup = require("@domain/property-group");
+
+// ---------------------------------------------------------
+// Public API
+// ---------------------------------------------------------
+
+exports.isProperty = (candidate) => candidate instanceof Property;
+
+// ---------- ESTATE ----------
+exports.estate = function (id, group, prices) {
+	precondition(_.isString(id) && id.length > 0, "Estate requires an id");
+	precondition(PropertyGroup.isGroup(group), "Estate requires a group");
+	precondition(_.isNumber(prices.value) && prices.value > 0, "Estate requires a price");
+	precondition(_.isNumber(prices.rent) && prices.rent > 0, "Estate requires a rent");
+
+	return new Property({
+		id,
+		group,
+		type: "estate",
+		price: prices.value,
+		rent: estateRent(prices.rent, group)
+	});
+};
+
+const estateRent = (baseRent, group) => (ownerProps) => {
+	const multiplier = ownsAllEstatesInGroup(group, ownerProps) ? 2 : 1;
+	return { amount: baseRent * multiplier };
+};
+
+const ownsAllEstatesInGroup = (group, properties) => {
+	const groupIds = _.map(group.properties(), (p) => p.id());
+	const ownedIds = _.map(properties, (p) => p.id());
+	return _.every(groupIds, (id) => _.contains(ownedIds, id));
+};
+
+// ---------- COMPANY ----------
+exports.company = function (id, group) {
+	precondition(_.isString(id) && id.length > 0, "Company requires an id");
+	precondition(PropertyGroup.isGroup(group), "Company requires a group");
+
+	return new Property({
+		id,
+		group,
+		type: "company",
+		price: group.propertyValue(),
+		rent: companyRent(group)
+	});
+};
+
+const companyRent = (group) => (ownerProps) => {
+	const multiplier = ownsBothCompanies(group, ownerProps)
+		? group.multipliers()[1]
+		: group.multipliers()[0];
+
+	return { multiplier };
+};
+
+const ownsBothCompanies = (group, properties) => {
+	const groupIds = _.map(group.properties(), (p) => p.id());
+	const ownedGroupProps = _.filter(properties, (prop) => groupIds.includes(prop.id()));
+	return ownedGroupProps.length === 2;
+};
+
+// ---------- RAILROAD ----------
+exports.railroad = function (id, group) {
+	precondition(_.isString(id) && id.length > 0, "Railroad requires an id");
+	precondition(PropertyGroup.isGroup(group), "Railroad requires a group");
+
+	return new Property({
+		id,
+		group,
+		type: "railroad",
+		price: group.propertyValue(),
+		rent: railroadRent(group)
+	});
+};
+
+const railroadRent = (group) => (ownerProps) => {
+	const count = countRailroads(group, ownerProps);
+	return { amount: group.baseRent() * Math.pow(2, count - 1) };
+};
+
+const countRailroads = (group, properties) => {
+	const groupIds = _.map(group.properties(), (p) => p.id());
+	return _.reduce(
+		properties,
+		(count, prop) => (groupIds.includes(prop.id()) ? count + 1 : count),
+		0
+	);
+};
+
+// ---------------------------------------------------------
+// Property Class (ES6 Modernized)
+// ---------------------------------------------------------
+
+class Property {
+	constructor(info) {
 		this._id = info.id;
 		this._group = info.group;
 		this._price = info.price;
-		this._rent = info.rent;
+		this._rentFn = info.rent;
 		this._type = info.type;
 	}
-	
-	Property.prototype.id = function () {
+
+	id() {
 		return this._id;
-	};
-	
-	Property.prototype.price = function () {
-		return this._price;
-	};
-	
-	Property.prototype.rent = function (ownerProperties) {
-		return this._rent(ownerProperties);
-	};
-	
-	Property.prototype.group = function () {
-		return this._group;
-	};
-	
-	Property.prototype.match = function (visitor) {
-		return matchWithDefault(visitor, this._type, [this._id, this._price, this._group]);
-	};
-	
-	function matchWithDefault(visitor, fn, args) {
-		if (_.isFunction(visitor[fn])) {
-			return visitor[fn].apply(visitor, args);
-		}
-		
-		return visitor['_']();
 	}
-	
-	Property.prototype.compareTo = function (property) {
-		precondition(property && property instanceof Property,
-			'Comparing this property to another property requires that other property');
-		
-		if (this._id === property._id) {
-			return 0;
-		}
-		
-		var groupComparison = this._group.compareTo(property._group);
-		if (groupComparison === 1) {
-			return 1;
-		} else if (groupComparison === -1) {
-			return -1;
-		}
-		
-		var indexesInGroup = {};
-		_.each(property._group.properties(), function (estate, index) {
-			indexesInGroup[estate.id()] = index;
+
+	price() {
+		return this._price;
+	}
+
+	rent(ownerProperties) {
+		return this._rentFn(ownerProperties);
+	}
+
+	group() {
+		return this._group;
+	}
+
+	match(visitor) {
+		return matchWithDefault(visitor, this._type, [
+			this._id,
+			this._price,
+			this._group
+		]);
+	}
+
+	compareTo(other) {
+		precondition(other instanceof Property, "Comparing properties requires another Property");
+
+		if (this._id === other._id) return 0;
+
+		// Compare groups first
+		const groupCmp = this._group.compareTo(other._group);
+		if (groupCmp !== 0) return groupCmp;
+
+		// Same group → compare index within group
+		const indexMap = {};
+		this._group.properties().forEach((estate, index) => {
+			indexMap[estate.id()] = index;
 		});
-		
-		if (indexesInGroup[this._id] < indexesInGroup[property._id]) {
-			return 1;
-		}
-		
-		return -1;		
-	};
-	
-	Property.prototype.equals = function (other) {
-		precondition(other, 'Testing a property for equality with something else requires that something else');
-		
-		if (this === other) {
-			return true;
-		}
-		
+
+		return indexMap[this._id] < indexMap[other._id] ? 1 : -1;
+	}
+
+	equals(other) {
+		precondition(other, "Testing property equality requires something to compare to");
 		return other instanceof Property && this._id === other._id;
-	};
-}());
+	}
+}
+
+// ---------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------
+
+function matchWithDefault(visitor, fn, args) {
+	if (_.isFunction(visitor[fn])) {
+		return visitor[fn].apply(visitor, args);
+	}
+	return visitor["_"]();
+}

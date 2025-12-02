@@ -5,7 +5,6 @@ const { precondition } = require("@infrastructure/contract");
 
 const GameState = require("@domain/game-state");
 const Choices = require("@domain/choices");
-const _ = require("underscore");
 
 // --------------------- FACTORY EXPORTS ---------------------
 
