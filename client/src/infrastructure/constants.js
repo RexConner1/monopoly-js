@@ -1,10 +1,9 @@
-(function() {
-	"use strict";
-	
-	exports.MIN_NUMBER_OF_PLAYERS = 2;
-    exports.MAX_NUMBER_OF_PLAYERS = 8;
+"use strict";
 
-    exports.STARTING_MONEY = 1500;
-    exports.JAIL_BAILOUT = 50;
+module.exports = {
+    MIN_NUMBER_OF_PLAYERS: 2,
+    MAX_NUMBER_OF_PLAYERS: 8,
+    STARTING_MONEY: 1500,
+    JAIL_BAILOUT: 50
+};
 
-}());

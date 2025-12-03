@@ -1,10 +1,11 @@
-(function() {
-	"use strict";
-	
-	exports.precondition = function (check, message) {
-        if (check) {
-            return;
-        }
+"use strict";
+
+const precondition = (check, message) => {
+    if (!check) {
         throw new Error("Precondition: " + message);
-    };
-}());
+    }
+};
+
+module.exports = {
+    precondition
+};
