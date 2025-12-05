@@ -3,8 +3,9 @@
 const { precondition } = require("@infrastructure/contract");
 const constants = require("@infrastructure/constants");
 
-const Property = require("@domain/property");
-const PropertyGroup = require("@domain/property-group");
+const Estate = require("@domain/properties/estate");
+const Railroad = require("@domain/properties/railroad");
+const Company = require("@domain/properties/company");
 
 exports.isBoard = function (candidate) {
 	return candidate instanceof Board;
@@ -76,24 +77,24 @@ class Board {
 
 function standardProperties() {
 	const groups = [
-		PropertyGroup.newGroup(0, "midnightblue", groupMembers),
-		PropertyGroup.newGroup(1, "lightskyblue", groupMembers),
-		PropertyGroup.newGroup(2, "mediumvioletred", groupMembers),
-		PropertyGroup.newGroup(3, "orange", groupMembers),
-		PropertyGroup.newGroup(4, "red", groupMembers),
-		PropertyGroup.newGroup(5, "yellow", groupMembers),
-		PropertyGroup.newGroup(6, "green", groupMembers),
-		PropertyGroup.newGroup(7, "blue", groupMembers)
+		Estate.newGroup(0, "midnightblue", groupMembers),
+		Estate.newGroup(1, "lightskyblue", groupMembers),
+		Estate.newGroup(2, "mediumvioletred", groupMembers),
+		Estate.newGroup(3, "orange", groupMembers),
+		Estate.newGroup(4, "red", groupMembers),
+		Estate.newGroup(5, "yellow", groupMembers),
+		Estate.newGroup(6, "green", groupMembers),
+		Estate.newGroup(7, "blue", groupMembers)
 	];
 
-	const railroadGroup = PropertyGroup.railroadGroup(
+	const railroadGroup = Railroad.railroadGroup(
 		8,
 		"black",
 		groupMembers,
 		{ value: 200, baseRent: 25 }
 	);
 
-	const companyGroup = PropertyGroup.companyGroup(
+	const companyGroup = Company.companyGroup(
 		9,
 		"lightgreen",
 		groupMembers,
@@ -101,36 +102,36 @@ function standardProperties() {
 	);
 
 	return {
-		mediterranean: Property.estate("md", groups[0], { value: 60, rent: 2 }),
-		baltic: Property.estate("bt", groups[0], { value: 60, rent: 4 }),
-		east: Property.estate("et", groups[1], { value: 100, rent: 6 }),
-		vermont: Property.estate("vt", groups[1], { value: 100, rent: 6 }),
-		connecticut: Property.estate("cn", groups[1], { value: 120, rent: 8 }),
-		charles: Property.estate("cl", groups[2], { value: 140, rent: 10 }),
-		us: Property.estate("us", groups[2], { value: 140, rent: 10 }),
-		virginia: Property.estate("vn", groups[2], { value: 160, rent: 12 }),
-		jack: Property.estate("jk", groups[3], { value: 180, rent: 14 }),
-		tennessee: Property.estate("tn", groups[3], { value: 180, rent: 14 }),
-		newYork: Property.estate("ny", groups[3], { value: 200, rent: 16 }),
-		kentucky: Property.estate("kt", groups[4], { value: 220, rent: 18 }),
-		indiana: Property.estate("in", groups[4], { value: 220, rent: 18 }),
-		illinois: Property.estate("il", groups[4], { value: 240, rent: 20 }),
-		atlantic: Property.estate("at", groups[5], { value: 260, rent: 22 }),
-		ventnor: Property.estate("vr", groups[5], { value: 260, rent: 22 }),
-		marvin: Property.estate("mv", groups[5], { value: 280, rent: 24 }),
-		pacific: Property.estate("pa", groups[6], { value: 300, rent: 26 }),
-		northCarolina: Property.estate("nc", groups[6], { value: 300, rent: 26 }),
-		pennsylvania: Property.estate("pn", groups[6], { value: 320, rent: 28 }),
-		park: Property.estate("pk", groups[7], { value: 350, rent: 35 }),
-		broadwalk: Property.estate("bw", groups[7], { value: 400, rent: 50 }),
+		mediterranean: Estate.estate("md", groups[0], { value: 60, rent: 2 }),
+		baltic: Estate.estate("bt", groups[0], { value: 60, rent: 4 }),
+		east: Estate.estate("et", groups[1], { value: 100, rent: 6 }),
+		vermont: Estate.estate("vt", groups[1], { value: 100, rent: 6 }),
+		connecticut: Estate.estate("cn", groups[1], { value: 120, rent: 8 }),
+		charles: Estate.estate("cl", groups[2], { value: 140, rent: 10 }),
+		us: Estate.estate("us", groups[2], { value: 140, rent: 10 }),
+		virginia: Estate.estate("vn", groups[2], { value: 160, rent: 12 }),
+		jack: Estate.estate("jk", groups[3], { value: 180, rent: 14 }),
+		tennessee: Estate.estate("tn", groups[3], { value: 180, rent: 14 }),
+		newYork: Estate.estate("ny", groups[3], { value: 200, rent: 16 }),
+		kentucky: Estate.estate("kt", groups[4], { value: 220, rent: 18 }),
+		indiana: Estate.estate("in", groups[4], { value: 220, rent: 18 }),
+		illinois: Estate.estate("il", groups[4], { value: 240, rent: 20 }),
+		atlantic: Estate.estate("at", groups[5], { value: 260, rent: 22 }),
+		ventnor: Estate.estate("vr", groups[5], { value: 260, rent: 22 }),
+		marvin: Estate.estate("mv", groups[5], { value: 280, rent: 24 }),
+		pacific: Estate.estate("pa", groups[6], { value: 300, rent: 26 }),
+		northCarolina: Estate.estate("nc", groups[6], { value: 300, rent: 26 }),
+		pennsylvania: Estate.estate("pn", groups[6], { value: 320, rent: 28 }),
+		park: Estate.estate("pk", groups[7], { value: 350, rent: 35 }),
+		broadwalk: Estate.estate("bw", groups[7], { value: 400, rent: 50 }),
 
-		readingRailroad: Property.railroad("railroad_reading", railroadGroup),
-		pennsylvaniaRailroad: Property.railroad("railroad_penn", railroadGroup),
-		boRailroad: Property.railroad("railroad_b_o", railroadGroup),
-		shortRailroad: Property.railroad("railroad_short", railroadGroup),
+		readingRailroad: Railroad.railroad("railroad_reading", railroadGroup),
+		pennsylvaniaRailroad: Railroad.railroad("railroad_penn", railroadGroup),
+		boRailroad: Railroad.railroad("railroad_b_o", railroadGroup),
+		shortRailroad: Railroad.railroad("railroad_short", railroadGroup),
 
-		electricCompany: Property.company("company_electric", companyGroup),
-		waterWorks: Property.company("company_water", companyGroup)
+		electricCompany: Company.company("company_electric", companyGroup),
+		waterWorks: Company.company("company_water", companyGroup)
 	};
 }
 

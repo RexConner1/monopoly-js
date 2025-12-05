@@ -20,11 +20,13 @@ const CONFIG = {
 	CHOOSE_PERCENTAGE_TAX: "Choose a {percentage}% tax",
 	CHOICE_CALCULATE_DICE_RENT:
 		"Roll the dice and pay a rent of {multiplier} times the result",
+
 	CHOICE_TRADE: "Trade with {player}",
 	TRADE_MAKE_OFFER: "Make this offer",
 	TRADE_CANCEL: "Cancel trade",
 	CHOICE_ACCEPT_OFFER: "Accept offer",
 	CHOICE_REJECT_OFFER: "Reject offer",
+	
 	CHOICE_GO_TO_JAIL: "Go to jail",
 	CHOICE_PAY_DEPOSIT: "Pay a {money} deposit to get out of jail",
 	CHOICE_TRY_DOUBLE_ROLL: "Try to roll a double to get out of jail",
