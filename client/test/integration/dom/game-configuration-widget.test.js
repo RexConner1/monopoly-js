@@ -102,6 +102,7 @@ describeInDom('A game configuration widget', function (domContext) {
 	
 	it('disable the start game button when the configuration is invalid', function () {
 		domContext.d3.clickOn('.remove-player-slot-btn[data-index="0"]');
+		domContext.d3.clickOn('.remove-player-slot-btn[data-index="0"]');
 		
 		domContext.assertDisabled('.btn-start-game');
 	});
