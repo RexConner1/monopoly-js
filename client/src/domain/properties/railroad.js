@@ -5,45 +5,17 @@ const{ PropertyGroup, isGroup }= require("@domain/property-group");
 const Property = require("@domain/property").Property;
 
 
-// class Railroad extends Property {
-//     constructor(id, group) {
-//         super({
-//             id,
-//             group,
-//             type: "railroad",
-//             price: group.propertyValue(),
-//             rent: railroadRent(group)
-//         });
-//     }
-// }
-
-exports.railroadGroup = function (index, color, propertiesFn, prices) {
-    precondition(_.isNumber(index), "Railroad property group requires index");
-    precondition(_.isString(color), "Railroad property group requires color");
-    precondition(_.isFunction(propertiesFn), "Railroad group requires property-listing function");
-    precondition(_.isNumber(prices.value) && prices.value > 0, "Railroad requires value");
-    precondition(_.isNumber(prices.baseRent) && prices.baseRent > 0, "Railroad requires base rent");
-
-    const group = new PropertyGroup(index, color, propertiesFn);
-
-    group.propertyValue = () => prices.value;
-    group.baseRent = () => prices.baseRent;
-
-    return group;
-};
-
-exports.railroad = function (id, group) {
-    precondition(_.isString(id) && id.length > 0, "Railroad requires an id");
-    precondition(isGroup(group), "Railroad requires a group");
-
-    return new Property({
-        id,
-        group,
-        type: "railroad",
-        price: group.propertyValue(),
-        rent: railroadRent(group)
-    });
-};
+class Railroad extends Property {
+    constructor(id, group) {
+        super({
+            id,
+            group,
+            type: "railroad",
+            price: group.propertyValue(),
+            rent: railroadRent(group)
+        });
+    }
+}
 
 const railroadRent = (group) => (ownerProps) => {
     const count = countRailroads(group, ownerProps);
@@ -58,3 +30,23 @@ const countRailroads = (group, properties) => {
         0
     );
 };
+
+const railroadGroup = function (index, color, propertiesFn, prices) {
+    precondition(_.isNumber(index), "Railroad property group requires index");
+    precondition(_.isString(color), "Railroad property group requires color");
+    precondition(_.isFunction(propertiesFn), "Railroad group requires property-listing function");
+    precondition(_.isNumber(prices.value) && prices.value > 0, "Railroad requires value");
+    precondition(_.isNumber(prices.baseRent) && prices.baseRent > 0, "Railroad requires base rent");
+
+    const group = new PropertyGroup(index, color, propertiesFn);
+
+    group.propertyValue = () => prices.value;
+    group.baseRent = () => prices.baseRent;
+
+    return group;
+};
+
+module.exports = {
+    Railroad,
+    railroadGroup
+}
