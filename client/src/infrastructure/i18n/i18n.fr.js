@@ -1,103 +1,107 @@
-(function() {
-	"use strict";
-	
-	exports.CONFIGURE_GAME_TITLE = 'Monopoly - configuration de partie';
-	
+"use strict";
+
+const I18N_FR = {
+	CONFIGURE_GAME_TITLE: "Monopoly - configuration de partie",
+
 	// Buttons
-	exports.BUTTON_NEW_GAME = 'Nouvelle partie';
-	exports.BUTTON_START_GAME = 'Commencer la partie';
-	exports.BUTTON_ADD_PLAYER = 'Cliquez ici pour ajouter un joueur';
-	
+	BUTTON_NEW_GAME: "Nouvelle partie",
+	BUTTON_START_GAME: "Commencer la partie",
+	BUTTON_ADD_PLAYER: "Cliquez ici pour ajouter un joueur",
+
 	// Choices
-	exports.CHOICE_ROLL_DICE = 'Lancer les dés';
-	exports.CHOICE_FINISH_TURN = 'Terminer le tour';
-	exports.CHOICE_BUY_PROPERTY = 'Acheter {property} pour {price}';
-	exports.CHOICE_PAY_RENT = 'Payer {rent} à {toPlayer}';
-	exports.CHOICE_GO_BANKRUPT = 'Faire faillite';
-	exports.CHOICE_PAY_TAX = 'Payer une taxe de {amount}';
-	exports.CHOOSE_FLAT_TAX = 'Choisir une taxe fixe de {amount}';
-	exports.CHOOSE_PERCENTAGE_TAX = 'Choisir une taxe de {percentage}%';
-	exports.CHOICE_CALCULATE_DICE_RENT = 'Lancer les dés et payer un loyer de {multiplier} fois le résultat';
-	exports.CHOICE_TRADE = "Échanger avec {player}";
-	exports.TRADE_MAKE_OFFER = "Faire cette offre";
-	exports.TRADE_CANCEL = "Annuler l'échange";
-	exports.CHOICE_ACCEPT_OFFER = "Accepter l'offre";
-	exports.CHOICE_REJECT_OFFER = "Rejeter l'offre";
-	exports.CHOICE_GO_TO_JAIL = "Aller en prison";
-	exports.CHOICE_PAY_DEPOSIT = "Payer une caution de {money} pour sortir de prison";
-	exports.CHOICE_TRY_DOUBLE_ROLL = "Tenter d'obtenir un doublé pour sortir de prison";
-	
+	CHOICE_ROLL_DICE: "Lancer les dés",
+	CHOICE_FINISH_TURN: "Terminer le tour",
+	CHOICE_BUY_PROPERTY: "Acheter {property} pour {price}",
+	CHOICE_PAY_RENT: "Payer {rent} à {toPlayer}",
+	CHOICE_GO_BANKRUPT: "Faire faillite",
+	CHOICE_PAY_TAX: "Payer une taxe de {amount}",
+	CHOOSE_FLAT_TAX: "Choisir une taxe fixe de {amount}",
+	CHOOSE_PERCENTAGE_TAX: "Choisir une taxe de {percentage}%",
+	CHOICE_CALCULATE_DICE_RENT:
+		"Lancer les dés et payer un loyer de {multiplier} fois le résultat",
+	CHOICE_TRADE: "Échanger avec {player}",
+	TRADE_MAKE_OFFER: "Faire cette offre",
+	TRADE_CANCEL: "Annuler l'échange",
+	CHOICE_ACCEPT_OFFER: "Accepter l'offre",
+	CHOICE_REJECT_OFFER: "Rejeter l'offre",
+	CHOICE_GO_TO_JAIL: "Aller en prison",
+	CHOICE_PAY_DEPOSIT: "Payer une caution de {money} pour sortir de prison",
+	CHOICE_TRY_DOUBLE_ROLL: "Tenter d'obtenir un doublé pour sortir de prison",
+
 	// Log messages
-	exports.LOG_DICE_ROLL = '{player} a obtenu un {die1} et un {die2}';
-	exports.LOG_DOUBLE_DICE_ROLL = '{player} a obtenu un doublé de {dice}';
-	exports.LOG_PROPERTY_BOUGHT = '{player} a acheté {property}';
-	exports.LOG_RENT_PAID = '{fromPlayer} a payé {amount} à {toPlayer}';
-	exports.LOG_SALARY = "{player} a passé GO et reçu $200";
-	exports.LOG_TAX_PAID = "{player} a payé une taxe de {amount}";
-	exports.LOG_OFFER_MADE = "{player1} a offert à {player2} : {offer1} pour {offer2}";
-	exports.LOG_OFFER_ACCEPTED = "L'offre a été acceptée";
-	exports.LOG_CONJUNCTION = 'et';
-	exports.LOG_OFFER_REJECTED = "L'offre a été rejetée";
-	exports.LOG_GONE_TO_JAIL = "{player} vient d'aller en prison";
-	exports.LOG_GONE_BANKRUPT = "{player} a fait faillite";
-	exports.LOG_GAME_WON = "{player} a gagné la partie";
-	
+	LOG_DICE_ROLL: "{player} a obtenu un {die1} et un {die2}",
+	LOG_DOUBLE_DICE_ROLL: "{player} a obtenu un doublé de {dice}",
+	LOG_PROPERTY_BOUGHT: "{player} a acheté {property}",
+	LOG_RENT_PAID: "{fromPlayer} a payé {amount} à {toPlayer}",
+	LOG_SALARY: "{player} a passé GO et reçu $200",
+	LOG_TAX_PAID: "{player} a payé une taxe de {amount}",
+	LOG_OFFER_MADE: "{player1} a offert à {player2} : {offer1} pour {offer2}",
+	LOG_OFFER_ACCEPTED: "L'offre a été acceptée",
+	LOG_CONJUNCTION: "et",
+	LOG_OFFER_REJECTED: "L'offre a été rejetée",
+	LOG_GONE_TO_JAIL: "{player} vient d'aller en prison",
+	LOG_GONE_BANKRUPT: "{player} a fait faillite",
+	LOG_GAME_WON: "{player} a gagné la partie",
+
 	// Squares
-	exports.CHANCE = 'Chance';
-	exports.COMMUNITY_CHEST = 'Caisse commune';
-	exports.INCOME_TAX = 'Impôt sur le revenu';
-	exports.LUXURY_TAX = 'Taxe de luxe';
-	exports.LUXURY_TAX_DESCRIPTION = "Payez 75 $";
-	exports.INCOME_TAX_DESCRIPTION = "Payez 10% ou 200 $";
-	exports.START_DESCRIPTION = "Réclamez 200 $ de salaire en passant à";
-	exports.VISITING_JAIL = "En visite";
-	exports.FREE_PARKING = "Stationnement gratuit";
-	exports.GO_TO_JAIL = "Allez en prison";
-	
-	exports.PROPERTY_COMPANY_WATER = 'Aqueduc';
-	exports.PROPERTY_COMPANY_ELECTRIC = "Compagnie d'électricité";
-	
-	exports.PROPERTY_RAILROAD_READING = 'Chemin de fer Reading';
-	exports.PROPERTY_RAILROAD_PENN = 'Chemin de fer Pennsylvanie';
-	exports.PROPERTY_RAILROAD_B_O = 'Chemin de fer B.& O.';
-	exports.PROPERTY_RAILROAD_SHORT = 'Chemin de fer Petit Réseau';
-	
-	exports.PROPERTY_MD = 'Avenue de la Méditerrannée';
-	exports.PROPERTY_BT = 'Avenue de la Baltique';
-	exports.PROPERTY_ET = "Avenue de l'Orient";
-	exports.PROPERTY_VT = 'Avenue Vermont';
-	exports.PROPERTY_CN = 'Avenue Connecticut';
-	exports.PROPERTY_CL = 'Place St-Charles';
-	exports.PROPERTY_US = 'Avenue des États-Unis';
-	exports.PROPERTY_VN = 'Avenue Virginie';
-	exports.PROPERTY_JK = 'Place St-Jacques';
-	exports.PROPERTY_TN = 'Avenue Tennessee';
-	exports.PROPERTY_NY = 'Avenue New York';
-	exports.PROPERTY_KT = 'Avenue Kentucky';
-	exports.PROPERTY_IN = 'Avenue Indiana';
-	exports.PROPERTY_IL = 'Avenue Illinois';
-	exports.PROPERTY_AT = 'Avenue Atlantique';
-	exports.PROPERTY_VR = 'Avenue Ventnor';
-	exports.PROPERTY_MV = 'Jardins Marvin';
-	exports.PROPERTY_PA = 'Avenue Pacifique';
-	exports.PROPERTY_NC = 'Avenue Caroline du Nord';
-	exports.PROPERTY_PN = 'Avenue Pennsylvanie';
-	exports.PROPERTY_PK = 'Place du parc';
-	exports.PROPERTY_BW = 'Promenade';
-	
+	CHANCE: "Chance",
+	COMMUNITY_CHEST: "Caisse commune",
+	INCOME_TAX: "Impôt sur le revenu",
+	LUXURY_TAX: "Taxe de luxe",
+	LUXURY_TAX_DESCRIPTION: "Payez 75 $",
+	INCOME_TAX_DESCRIPTION: "Payez 10% ou 200 $",
+	START_DESCRIPTION: "Réclamez 200 $ de salaire en passant à",
+	VISITING_JAIL: "En visite",
+	FREE_PARKING: "Stationnement gratuit",
+	GO_TO_JAIL: "Allez en prison",
+
+	// Property names – Companies
+	PROPERTY_COMPANY_WATER: "Aqueduc",
+	PROPERTY_COMPANY_ELECTRIC: "Compagnie d'électricité",
+
+	// Railroads
+	PROPERTY_RAILROAD_READING: "Chemin de fer Reading",
+	PROPERTY_RAILROAD_PENN: "Chemin de fer Pennsylvanie",
+	PROPERTY_RAILROAD_B_O: "Chemin de fer B.& O.",
+	PROPERTY_RAILROAD_SHORT: "Chemin de fer Petit Réseau",
+
+	// Streets
+	PROPERTY_MD: "Avenue de la Méditerrannée",
+	PROPERTY_BT: "Avenue de la Baltique",
+	PROPERTY_ET: "Avenue de l'Orient",
+	PROPERTY_VT: "Avenue Vermont",
+	PROPERTY_CN: "Avenue Connecticut",
+	PROPERTY_CL: "Place St-Charles",
+	PROPERTY_US: "Avenue des États-Unis",
+	PROPERTY_VN: "Avenue Virginie",
+	PROPERTY_JK: "Place St-Jacques",
+	PROPERTY_TN: "Avenue Tennessee",
+	PROPERTY_NY: "Avenue New York",
+	PROPERTY_KT: "Avenue Kentucky",
+	PROPERTY_IN: "Avenue Indiana",
+	PROPERTY_IL: "Avenue Illinois",
+	PROPERTY_AT: "Avenue Atlantique",
+	PROPERTY_VR: "Avenue Ventnor",
+	PROPERTY_MV: "Jardins Marvin",
+	PROPERTY_PA: "Avenue Pacifique",
+	PROPERTY_NC: "Avenue Caroline du Nord",
+	PROPERTY_PN: "Avenue Pennsylvanie",
+	PROPERTY_PK: "Place du parc",
+	PROPERTY_BW: "Promenade",
+
 	// Player name
-	exports.DEFAULT_PLAYER_NAME = 'Joueur {index}';
-	
+	DEFAULT_PLAYER_NAME: "Joueur {index}",
+
 	// Player types
-	exports.PLAYER_TYPE_HUMAN = 'Humain';
-	exports.PLAYER_TYPE_COMPUTER = 'Ordinateur';
-	
+	PLAYER_TYPE_HUMAN: "Humain",
+	PLAYER_TYPE_COMPUTER: "Ordinateur",
+
 	// Price formatting
-	exports.PRICE_STRING = 'Prix {price}';
-	exports.formatPrice = function (price) {
-		return price + ' $';
-	};
-	
+	PRICE_STRING: "Prix {price}",
+	formatPrice: (price) => `${price} $`,
+
 	// Trade
-	exports.TRADE_TITLE = "Échange";
-}());
+	TRADE_TITLE: "Échange"
+};
+
+module.exports = I18N_FR;

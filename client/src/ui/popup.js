@@ -1,94 +1,108 @@
-(function () {
-    'use strict';
+"use strict";
 
-    var precondition = require('@infrastructure/contract').precondition;
+const { precondition } = require('@infrastructure/contract');
 
-    exports.render = function (container, positioning, options) {
-        precondition(container, "A popup require a positionned container to render into");
-        // Example : top + height + left + width, OR top + bottom + left + width, and so forth
-        precondition(isFullyPositioned(positioning), "The popup must be fully positioned vertically and horizontally");
+module.exports.render = (container, positioning, options = defaultOptions()) => {
+    precondition(container, "A popup requires a positioned container to render into");
+    precondition(isFullyPositioned(positioning),
+        "The popup must be fully positioned vertically and horizontally"
+    );
 
-		options = options || defaultOptions();
-        var htmlElements = renderDom(container, positioning);
-        var closedSubject = bindEvents(htmlElements.popupElement, options);
+    const htmlElements = renderDom(container, positioning);
+    const closedSubject = bindEvents(htmlElements.popupElement, options);
 
-        return externalInterface(htmlElements, closedSubject);
+    return externalInterface(htmlElements, closedSubject);
+};
+
+
+// ------------------------- Default Options -------------------------
+
+function defaultOptions() {
+    return {
+        closeBtn: true
     };
-	
-	function defaultOptions() {
-		return {
-			closeBtn : true
-		};
-	}
+}
 
-    function isFullyPositioned(positioning) {
-        var cssAttributes = _.keys(positioning);
-        var heightAttributes = ["top", "bottom", "height"];
-        var widthAttributes = ["left", "width", "right"];
 
-        return cssAttributes.length === 4 &&
-            _.intersection(cssAttributes, heightAttributes).length === 2 &&
-            _.intersection(cssAttributes, widthAttributes).length === 2;
+// ------------------------- Position Validation -------------------------
+
+function isFullyPositioned(positioning) {
+    const cssAttributes = _.keys(positioning);
+
+    const vertical = ["top", "bottom", "height"];
+    const horizontal = ["left", "width", "right"];
+
+    return (
+        cssAttributes.length === 4 &&
+        _.intersection(cssAttributes, vertical).length === 2 &&
+        _.intersection(cssAttributes, horizontal).length === 2
+    );
+}
+
+
+// ------------------------- DOM Rendering -------------------------
+
+function renderDom(container, positioning) {
+    const popupElement = d3.select(container[0])
+        .append('div')
+        .classed('popup', true)
+        .style('position', 'absolute')
+        .style(positioning);
+
+    const contentContainer = popupElement.append('div')
+        .classed('popup-content', true);
+
+    return {
+        popupElement,
+        contentContainer
+    };
+}
+
+
+// ------------------------- Events & Close Handling -------------------------
+
+function bindEvents(popupElement, options) {
+    const closedSubject = new Rx.AsyncSubject();
+
+    if (options.closeBtn) {
+        const closeButton = popupElement.append('button')
+            .classed('popup-close-btn', true)
+            .attr('data-ui', 'popup-close')
+            .on('click', () => {
+                closePopup(popupElement, closedSubject);
+            });
+
+        closeButton.append('span')
+            .classed({
+                glyphicon: true,
+                'glyphicon-remove': true
+            });
     }
 
-    function renderDom(container, positioning) {
-        var popupElement = d3.select(container[0])
-            .append('div')
-            .classed('popup', true)
-            // The CSS classes are not accessible in the test so we set the position in javascript
-            .style('position', 'absolute')
-            .style(positioning);
+    return closedSubject;
+}
 
-        var contentContainer = popupElement.append('div')
-            .classed('popup-content', true);
 
-        return {
-            popupElement: popupElement,
-            contentContainer: contentContainer
-        };
-    }
+// ------------------------- External API -------------------------
 
-    function bindEvents(popupElement, options) {
-		var closedSubject = new Rx.AsyncSubject();
-		
-		if (options.closeBtn) {
-			var closeButton = popupElement.append('button')
-				.classed('popup-close-btn', true)
-				.attr('data-ui', 'popup-close')
-				.on('click', function () {
-					closePopup(popupElement, closedSubject);
-				});
-				
-			closeButton.append('span')
-				.classed({
-					'glyphicon': true,
-					'glyphicon-remove': true
-				});
-		}
-        
-		return closedSubject;
-    }
+function externalInterface(htmlElements, closedSubject) {
+    return {
+        contentContainer: () => $(htmlElements.contentContainer[0]),
 
-    function externalInterface(htmlElements, closedSubject) {
-        return {
-            contentContainer: function () {
-                return $(htmlElements.contentContainer[0]);
-            },
+        closed: () => closedSubject.asObservable(),
 
-            closed: function () {
-                return closedSubject.asObservable();
-            },
+        close: () => closePopup(htmlElements.popupElement, closedSubject)
+    };
+}
 
-            close: function () {
-                closePopup(htmlElements.popupElement, closedSubject);
-            }
-        };
-    }
 
-    function closePopup(popupElement, closedSubject) {
-        popupElement.classed('.popup-closing', true);
-        popupElement.remove();
-        closedSubject.onNext(true);
-        closedSubject.onCompleted();
-    }
-}());
+// ------------------------- Close Logic -------------------------
+
+function closePopup(popupElement, closedSubject) {
+    // Fix bug: classed('.class') should be classed('class')
+    popupElement.classed('popup-closing', true);
+
+    popupElement.remove();
+    closedSubject.onNext(true);
+    closedSubject.onCompleted();
+}

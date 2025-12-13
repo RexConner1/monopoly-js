@@ -1,45 +1,49 @@
-(function() {
-	"use strict";
-	
-	var i18n = require('@i18n/i18n').i18n();
-	var precondition = require('@infrastructure/contract').precondition;
-	
-	var GameState = require('@domain/game-state');
-	
-	exports.newChoice = function() {
-		return new RollDiceChoice();
-	};
-	
-	function RollDiceChoice() {
-		this.id = 'roll-dice';
+"use strict";
+
+const i18n = require("@i18n/i18n").i18n();
+const { precondition } = require("@infrastructure/contract");
+const GameState = require("@domain/game-state");
+
+exports.newChoice = function () {
+	return new RollDiceChoice();
+};
+
+class RollDiceChoice {
+	constructor() {
+		this.id = "roll-dice";
 		this.name = i18n.CHOICE_ROLL_DICE;
 	}
-	
-	RollDiceChoice.prototype.equals = function (other) {
-		return (other instanceof RollDiceChoice);
-	};
-	
-	RollDiceChoice.prototype.requiresDice = function () {
+
+	equals(other) {
+		return other instanceof RollDiceChoice;
+	}
+
+	requiresDice() {
 		return true;
-	};
-	
-	RollDiceChoice.prototype.computeNextState = function (state, dice) {
-		precondition(GameState.isGameState(state),
-			'To compute next state, a roll-dice choice requires the actual state');
-		precondition(dice, 'To compute next state, a roll-dice choice requires the result of a dice roll');
-		
-		var newPlayers = _.map(state.players(), function (player, index) {
+	}
+
+	computeNextState(state, dice) {
+		precondition(
+			GameState.isGameState(state),
+			"To compute next state, a roll-dice choice requires the actual state"
+		);
+
+		precondition(
+			dice,
+			"To compute next state, a roll-dice choice requires the result of a dice roll"
+		);
+
+		const newPlayers = state.players().map((player, index) => {
 			if (index === state.currentPlayerIndex()) {
 				return player.move(dice);
 			}
-			
 			return player;
 		});
-		
+
 		return GameState.turnEndState({
 			board: state.board(),
 			players: newPlayers,
 			currentPlayerIndex: state.currentPlayerIndex()
 		});
-	};
-}());
+	}
+}

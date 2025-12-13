@@ -1,93 +1,91 @@
-(function() {
-	"use strict";
-	
-	var precondition = require('@infrastructure/contract').precondition;
-	
-	exports.start = function (playGameTask) {
-		precondition(playGameTask, 'HandleChoicesTask requires a PlayGameTask');
-		
-		var humanChoices = new Rx.ReplaySubject(1);
-		var completed = new Rx.AsyncSubject();
-		gameStateForPlayerType(playGameTask, 'human', completed)
-			.map(function (state) {
-				return state.choices();
-			})
-			.subscribe(humanChoices);
-		
-		var task = new HandleChoicesTask(humanChoices, completed);
-		
-		gameStateForPlayerType(playGameTask, 'computer', completed)
-			.filter(function (state) {
-				return state.choices().length > 0;
-			})
-			.map(computerPlayer)
-			.subscribe(applyChoice(task));
-			
-		return task;
-	};
-	
-	function HandleChoicesTask(humanChoices, completed) {
+"use strict";
+
+const { precondition } = require("@infrastructure/contract");
+
+exports.start = function (playGameTask) {
+	precondition(playGameTask, "HandleChoicesTask requires a PlayGameTask");
+
+	const humanChoices = new Rx.ReplaySubject(1);
+	const completed = new Rx.AsyncSubject();
+
+	// Human choices stream
+	gameStateForPlayerType(playGameTask, "human", completed)
+		.map(state => state.choices())
+		.subscribe(humanChoices);
+
+	const task = new HandleChoicesTask(humanChoices, completed);
+
+	// Computer player decisions
+	gameStateForPlayerType(playGameTask, "computer", completed)
+		.filter(state => state.choices().length > 0)
+		.map(computerPlayer)
+		.subscribe(applyChoice(task));
+
+	return task;
+};
+
+
+class HandleChoicesTask {
+	constructor(humanChoices, completed) {
 		this._humanChoices = humanChoices;
 		this._choiceMade = new Rx.Subject();
 		this._completed = completed;
 	}
-	
-	HandleChoicesTask.prototype.stop = function () {
+
+	stop() {
 		this._completed.onNext(true);
 		this._completed.onCompleted();
-	};
-	
-	HandleChoicesTask.prototype.choices = function () {
+	}
+
+	choices() {
 		return this._humanChoices.takeUntil(this._completed);
-	};
-	
-	HandleChoicesTask.prototype.choiceMade = function () {
+	}
+
+	choiceMade() {
 		return this._choiceMade.takeUntil(this._completed);
-	};
-	
-	HandleChoicesTask.prototype.completed = function () {
+	}
+
+	completed() {
 		return this._completed.asObservable();
-	};
-	
-	HandleChoicesTask.prototype.makeChoice = function (choice, arg) {
-		this._humanChoices.onNext([]);
-		this._choiceMade.onNext({choice: choice, arg: arg});
-	};
-	
-	function gameStateForPlayerType(playGameTask, type, completed) {
-		return playGameTask.gameState()
-			.takeUntil(completed)
-			.filter(function (state) {
-				return state.currentPlayer().type() === type;
-			});
 	}
-	
-	function computerPlayer(state) {
-		if (_.isFunction(state.offer)) {
-			var valueForCurrentPlayer = calculateOfferValueFor(state.offer(), 0);
-			var valueForOtherPlayer = calculateOfferValueFor(state.offer(), 1);
-			
-			if (valueForCurrentPlayer >= valueForOtherPlayer) {
-				return state.choices()[0];
-			}
-			
-			return state.choices()[1];
-		}
-		
-		return state.choices()[0];
+
+	makeChoice(choice, arg) {
+		this._humanChoices.onNext([]); // clear choices
+		this._choiceMade.onNext({ choice, arg });
 	}
-	
-	function calculateOfferValueFor(offer, playerIndex) {
-		return _.reduce(offer.propertiesFor(playerIndex), function (totalValue, property) {
-			return totalValue + property.price();
-		}, offer.moneyFor(playerIndex));
+}
+
+
+const gameStateForPlayerType = (playGameTask, type, completed) =>
+	playGameTask
+		.gameState()
+		.takeUntil(completed)
+		.filter(state => state.currentPlayer().type() === type);
+
+const computerPlayer = (state) => {
+	if (_.isFunction(state.offer)) {
+		const offer = state.offer();
+		const valueCurrent = calculateOfferValueFor(offer, 0);
+		const valueOther = calculateOfferValueFor(offer, 1);
+
+		return valueCurrent >= valueOther
+			? state.choices()[0]
+			: state.choices()[1];
 	}
-	
-	function applyChoice(task) {
-		return function (choice) {
-			Rx.Observable.timer(0).subscribe(function () {
-				task._choiceMade.onNext({choice: choice});
-			});
-		};
-	}
-}());
+
+	return state.choices()[0];
+};
+
+const calculateOfferValueFor = (offer, playerIndex) =>
+	_.reduce(
+		offer.propertiesFor(playerIndex),
+		(total, property) => total + property.price(),
+		offer.moneyFor(playerIndex)
+	);
+
+const applyChoice = (task) => (choice) => {
+	// Delay by 0 ms to keep ordering consistent with old code
+	Rx.Observable.timer(0).subscribe(() => {
+		task._choiceMade.onNext({ choice });
+	});
+};

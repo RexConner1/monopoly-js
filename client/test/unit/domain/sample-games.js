@@ -36,7 +36,7 @@ exports.turnEndStateWithPlayerOnBroadwalkAndGroupOwned = function () {
 		board: board,
 		players: [
 			players[0].move([0, 39]),
-			players[1].buyProperty(board.properties().park).buyProperty(board.properties().broadwalk),
+			players[1].buyProperty(board.properties().park).buyProperty(board.properties().boardwalk),
 			players[2]
 		],
 		currentPlayerIndex: 0

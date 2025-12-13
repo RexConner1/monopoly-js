@@ -1,21 +1,20 @@
-(function() {
-	"use strict";
-	
-	var GameTask = require('@app/game-task');
-	var GameWidget = require('@ui/game-widget');
-	
-	var failFast = require('@infrastructure/fail-fast');
-	
-	failFast.crashOnUnhandledException();
-    	failFast.crashOnResourceLoadingError();
+"use strict";
 
-	$(document).ready(startApplication());
+const GameTask = require('@app/game-task');
+const GameWidget = require('@ui/game-widget');
 
-	function startApplication() {
-		var container = $('.game-container');
+const failFast = require('@infrastructure/fail-fast');
 
-		var task = GameTask.start();
-		GameWidget.render(container, task);
-	}
-}());
+// Crash app on unexpected errors
+failFast.crashOnUnhandledException();
+failFast.crashOnResourceLoadingError();
 
+// Run when DOM is ready
+$(startApplication);
+
+function startApplication() {
+    const container = $('.game-container');
+
+    const task = GameTask.start();
+    GameWidget.render(container, task);
+}

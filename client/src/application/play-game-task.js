@@ -1,143 +1,146 @@
-(function() {
-	"use strict";
-	
-	var RollDiceTask = require('@app/roll-dice-task');
-	var TradeTask = require('@app/trade-task');
-	var LogGameTask = require('@app/log-game-task');
-	var HandleChoicesTask = require('@app/handle-choices-task');
-	var Player = require('@domain/player');
-	var GameState = require('@domain/game-state');
-	var TradeOffer = require('@domain/trade-offer');
-	var Board = require('@domain/board');
-	
-	var precondition = require('@infrastructure/contract').precondition;
-	
-	exports.start = function (gameConfiguration) {
-		precondition(Board.isBoard(gameConfiguration.board),
-			'PlayGameTask requires a configuration with a board');
-		precondition(_.isArray(gameConfiguration.players),
-			'PlayGameTask requires a configuration with a list of players');
-		precondition(gameConfiguration.options,
-			'PlayGameTask requires a configuration with an options object');
-		
-		var task = new PlayGameTask(gameConfiguration);
-		
-		listenForChoices(task);	
-		
-		return task;
-	};
-	
-	function PlayGameTask(gameConfiguration) {		
+"use strict";
+
+const RollDiceTask = require("@app/roll-dice-task");
+const TradeTask = require("@app/trade-task");
+const LogGameTask = require("@app/log-game-task");
+const HandleChoicesTask = require("@app/handle-choices-task");
+const Player = require("@domain/player");
+const GameState = require("@domain/game-state");
+const TradeOffer = require("@domain/trade-offer");
+const Board = require("@domain/board");
+const { precondition } = require("@infrastructure/contract");
+
+exports.start = function (gameConfiguration) {
+	precondition(Board.isBoard(gameConfiguration.board), "PlayGameTask requires a configuration with a board");
+	precondition(_.isArray(gameConfiguration.players), "PlayGameTask requires a configuration with a list of players");
+	precondition(gameConfiguration.options, "PlayGameTask requires a configuration with an options object");
+
+	const task = new PlayGameTask(gameConfiguration);
+	listenForChoices(task);
+	return task;
+};
+
+// ---------------------------- CLASS ----------------------------
+
+class PlayGameTask {
+	constructor(gameConfiguration) {
 		this._options = gameConfiguration.options;
 		this._completed = new Rx.AsyncSubject();
 		this._rollDiceTaskCreated = new Rx.Subject();
 		this._tradeTaskCreated = new Rx.Subject();
-		
-		var initialState = initialGameState(gameConfiguration.board, gameConfiguration.players);
-		
+
+		const initialState = initialGameState(
+			gameConfiguration.board,
+			gameConfiguration.players
+		);
+
 		this._gameState = new Rx.BehaviorSubject(initialState);
-		
+
 		this._logGameTask = LogGameTask.start(this);
-		this._handleChoicesTask = HandleChoicesTask.start(this);	
+		this._handleChoicesTask = HandleChoicesTask.start(this);
 	}
-	
-	function listenForChoices(self) {
-		self._handleChoicesTask.choiceMade()
-			.withLatestFrom(self._gameState, function (action, state) {
-				return {
-					choice: action.choice,
-					arg: action.arg,
-					state: state
-				};
-			})
-			.flatMap(computeNextState(self))
-			// .subscribe(self._gameState);
-			.subscribe(function (state) {
-				self._gameState.onNext(state);
-			});
-	}
-	
-	function initialGameState(board, players) {
-		return GameState.turnStartState({
-			board: board,
-			players: Player.newPlayers(players, board.playerParameters()),
-			currentPlayerIndex: 0
-		});
-	}
-	
-	PlayGameTask.prototype.handleChoicesTask = function () {
+
+	handleChoicesTask() {
 		return this._handleChoicesTask;
-	};
-	
-	PlayGameTask.prototype.messages = function () {
+	}
+
+	messages() {
 		return this._logGameTask.messages().takeUntil(this._completed);
-	};
-	
-	PlayGameTask.prototype.gameState = function () {
+	}
+
+	gameState() {
 		return this._gameState.asObservable().takeUntil(this._completed);
-	};
-	
-	PlayGameTask.prototype.rollDiceTaskCreated = function () {
+	}
+
+	rollDiceTaskCreated() {
 		return this._rollDiceTaskCreated.takeUntil(this._completed);
-	};
-	
-	PlayGameTask.prototype.tradeTaskCreated = function () {
+	}
+
+	tradeTaskCreated() {
 		return this._tradeTaskCreated.takeUntil(this._completed);
-	};
-	
-	PlayGameTask.prototype.completed = function () {
+	}
+
+	completed() {
 		return this._completed.asObservable();
-	};
-	
-	PlayGameTask.prototype.stop = function () {
+	}
+
+	stop() {
 		this._handleChoicesTask.stop();
-		
 		this._completed.onNext(true);
 		this._completed.onCompleted();
-	};
-	
-	function computeNextState(self) {
-		return function (action) {
-			if (action.choice.requiresDice()) {
-				return computeNextStateWithDice(self, action.state, action.choice);
-			}
-			
-			if (_.isFunction(action.choice.requiresTrade)) {
-				return computeNextStateWithTrade(self, action.state, action.choice, action.arg);
-			}
-			
-			var nextState = action.choice.computeNextState(action.state);
-			return Rx.Observable.return(nextState);
-		};
 	}
-	
-	function computeNextStateWithDice(self, state, choice) {
-		var task = RollDiceTask.start({
-			fast: self._options.fastDice,
-			dieFunction: self._options.dieFunction
+}
+
+// ---------------------------- Initialization ----------------------------
+
+const initialGameState = (board, players) =>
+	GameState.turnStartState({
+		board,
+		players: Player.newPlayers(players, board.playerParameters()),
+		currentPlayerIndex: 0
+	});
+
+// ---------------------------- Choice Handling ----------------------------
+
+const listenForChoices = (self) => {
+	self._handleChoicesTask
+		.choiceMade()
+		.withLatestFrom(self._gameState, (action, state) => ({
+			choice: action.choice,
+			arg: action.arg,
+			state
+		}))
+		.flatMap(computeNextState(self))
+		.subscribe((nextState) => {
+			self._gameState.onNext(nextState);
 		});
-		
-		self._rollDiceTaskCreated.onNext(task);
-		return task.diceRolled().last()
-			.map(function (dice) {
-				return choice.computeNextState(state, dice);
-			});
+};
+
+const computeNextState = (self) => (action) => {
+	if (action.choice.requiresDice()) {
+		return computeNextStateWithDice(self, action.state, action.choice);
 	}
-	
-	function computeNextStateWithTrade(self, state, choice, arg) {
-		if (TradeOffer.isOffer(arg) && !arg.isEmpty()) {
-			var nextState = choice.computeNextState(state, arg);
-			return Rx.Observable.return(nextState);
-		}
-				
-		var currentPlayer = state.players()[state.currentPlayerIndex()];
-		var otherPlayer = choice.otherPlayer();
-		var task = TradeTask.start(currentPlayer, otherPlayer);
-		
-		self._tradeTaskCreated.onNext(task);
-		return task.offer().last()
-			.map(function (offer) {
-				return choice.computeNextState(state, offer);
-			});
+
+	if (_.isFunction(action.choice.requiresTrade)) {
+		return computeNextStateWithTrade(self, action.state, action.choice, action.arg);
 	}
-}());
+
+	const nextState = action.choice.computeNextState(action.state);
+	return Rx.Observable.return(nextState);
+};
+
+// ---------------------------- Dice Path ----------------------------
+
+const computeNextStateWithDice = (self, state, choice) => {
+	const task = RollDiceTask.start({
+		fast: self._options.fastDice,
+		dieFunction: self._options.dieFunction
+	});
+
+	self._rollDiceTaskCreated.onNext(task);
+
+	return task
+		.diceRolled()
+		.last()
+		.map((dice) => choice.computeNextState(state, dice));
+};
+
+// ---------------------------- Trade Path ----------------------------
+
+const computeNextStateWithTrade = (self, state, choice, arg) => {
+	if (TradeOffer.isOffer(arg) && !arg.isEmpty()) {
+		const nextState = choice.computeNextState(state, arg);
+		return Rx.Observable.return(nextState);
+	}
+
+	const currentPlayer = state.players()[state.currentPlayerIndex()];
+	const otherPlayer = choice.otherPlayer();
+	const task = TradeTask.start(currentPlayer, otherPlayer);
+
+	self._tradeTaskCreated.onNext(task);
+
+	return task
+		.offer()
+		.last()
+		.map((offer) => choice.computeNextState(state, offer));
+};

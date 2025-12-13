@@ -1,38 +1,49 @@
-(function () {
-    'use strict';
-    var frenchString = require('./i18n.fr');
-    var englishString = require('./i18n.en');
+"use strict";
 
-    var ENGLISH_INDICATOR = 'en';
-    var FRENCH_INDICATOR = 'fr';
+const frenchStrings = require("./i18n.fr");
+const englishStrings = require("./i18n.en");
 
-    var navigatorLanguageTag = navigator.language || navigator.userLanguage;
-    setApplicationLanguage(navigatorLanguageTag.toLowerCase());
+const ENGLISH = "en";
+const FRENCH = "fr";
 
-    exports.i18n = function () {
-        var currentLanguage = null;
+/**
+ * Determine the language to use based on the browser.
+ * This sets window.applicationLanguage for backward compatibility.
+ */
+function detectBrowserLanguage() {
+	const langTag = (navigator.language || navigator.userLanguage || ENGLISH).toLowerCase();
+	window.applicationLanguage = langTag;
+	return langTag;
+}
 
-        if (navigatorIsEnglish()) {
-            currentLanguage = englishString;
-        }
-        else if (navigatorIsFrench()) {
-            currentLanguage = frenchString;
-        } else {
-            //Default
-            currentLanguage = englishString;
-        }
-        return currentLanguage;
-    };
+/**
+ * Returns true if the detected language is French.
+ */
+function isFrench() {
+	return window.applicationLanguage.includes(FRENCH);
+}
 
-    function navigatorIsFrench() {
-        return window.applicationLanguage.indexOf(FRENCH_INDICATOR) > -1;
-    }
+/**
+ * Returns true if the detected language is English.
+ */
+function isEnglish() {
+	return window.applicationLanguage.includes(ENGLISH);
+}
 
-    function navigatorIsEnglish() {
-        return window.applicationLanguage.indexOf(ENGLISH_INDICATOR) > -1;
-    }
+/**
+ * Main export — returns the correct i18n object based on navigator language.
+ */
+function getI18n() {
+	if (isFrench()) return frenchStrings;
+	if (isEnglish()) return englishStrings;
 
-    function setApplicationLanguage(applicationLanguage){
-        window.applicationLanguage = applicationLanguage;
-    }
-}());
+	// default to English
+	return englishStrings;
+}
+
+// Run detection immediately (same behavior as original IIFE)
+detectBrowserLanguage();
+
+module.exports = {
+	i18n: getI18n
+};

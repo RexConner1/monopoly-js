@@ -274,7 +274,7 @@ function assertRentIsMediterraneanAvenueRent() {
 }
 
 function assertRentIsBroadwalkRent() {
-	var state = turnEndStateWithPlayers(playerOnEstateOwnedByOther(Board.standard().properties().broadwalk, 39));
+	var state = turnEndStateWithPlayers(playerOnEstateOwnedByOther(Board.standard().properties().boardwalk, 39));
 	var secondPlayer = testData.players()[1];
 			
 	assertChoices(state, [PayRentChoice.newChoice(50, secondPlayer)]);

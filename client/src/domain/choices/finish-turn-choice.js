@@ -1,36 +1,38 @@
-(function() {
-	"use strict";
-	
-	var i18n = require('@i18n/i18n').i18n();
-	var GameState = require('@domain/game-state');
-	
-	var precondition = require('@infrastructure/contract').precondition;
-	
-	exports.newChoice = function() {
-		return new FinishTurnChoice();
-	};
-	
-	function FinishTurnChoice() {
-		this.id = 'finish-turn';
+"use strict";
+
+const i18n = require("@i18n/i18n").i18n();
+const GameState = require("@domain/game-state");
+const { precondition } = require("@infrastructure/contract");
+
+exports.newChoice = function () {
+	return new FinishTurnChoice();
+};
+
+class FinishTurnChoice {
+	constructor() {
+		this.id = "finish-turn";
 		this.name = i18n.CHOICE_FINISH_TURN;
 	}
-	
-	FinishTurnChoice.prototype.equals = function (other) {
-		return (other instanceof FinishTurnChoice);
-	};
-	
-	FinishTurnChoice.prototype.requiresDice = function () {
+
+	equals(other) {
+		return other instanceof FinishTurnChoice;
+	}
+
+	requiresDice() {
 		return false;
-	};
-	
-	FinishTurnChoice.prototype.computeNextState = function (state) {
-		precondition(GameState.isGameState(state),
-			'FinishTurnChoice requires a game state to compute the next one');
-			
+	}
+
+	computeNextState(state) {
+		precondition(
+			GameState.isGameState(state),
+			"FinishTurnChoice requires a game state to compute the next one"
+		);
+
 		return GameState.turnStartState({
 			board: state.board(),
 			players: state.players(),
-			currentPlayerIndex: (state.currentPlayerIndex() + 1) % state.players().length
+			currentPlayerIndex:
+				(state.currentPlayerIndex() + 1) % state.players().length
 		});
-	};
-}());
+	}
+}
