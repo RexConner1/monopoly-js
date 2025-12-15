@@ -70,9 +70,14 @@ exports.gameFinishedState = function (board, winner) {
 exports.turnStartState = function (info) {
 	validateInfo(info);
 
-	const choices = newTurnChoices(info);
-
-	return new GameState(info, choices);
+	const enrichedInfo = {
+		...info,
+		consecutiveDoubles: info.consecutiveDoubles ? info.consecutiveDoubles : 0
+	};
+	
+	const choices = newTurnChoices(enrichedInfo);
+	
+	return new GameState(enrichedInfo, choices);
 };
 
 exports.turnEndState = function (info) {
@@ -86,7 +91,9 @@ exports.turnEndState = function (info) {
 exports.turnEndStateAfterPay = function (info) {
 	validateInfo(info);
 
-	return new GameState(info, [FinishTurnChoice.newChoice()]);
+	const finishingTurnLogic = getFinishingTurnLogic(info)
+
+	return new GameState(info, finishingTurnLogic());
 };
 
 // ---------------------- GameState Class ----------------------
@@ -97,6 +104,7 @@ class GameState {
 		this._players = info.players;
 		this._currentPlayerIndex = info.currentPlayerIndex;
 		this._choices = choices;
+		this._consecutiveDoubles = info.consecutiveDoubles;
 	}
 
 	board() {
@@ -117,6 +125,10 @@ class GameState {
 
 	choices() {
 		return this._choices;
+	}
+
+	consecutiveDoubles() {
+		return this._consecutiveDoubles;
 	}
 
 	equals(other) {
@@ -146,7 +158,8 @@ class GameState {
 			{
 				board: this._board,
 				players: this._players,
-				currentPlayerIndex: this._currentPlayerIndex
+				currentPlayerIndex: this._currentPlayerIndex,
+				consecutiveDoubles: this._consecutiveDoubles
 			},
 			choices
 		);
@@ -166,7 +179,8 @@ class GameState {
 			{
 				board: this._board,
 				players: this._players,
-				currentPlayerIndex: this._currentPlayerIndex
+				currentPlayerIndex: this._currentPlayerIndex,
+				consecutiveDoubles: this._consecutiveDoubles
 			},
 			this._oldChoices
 		);
@@ -197,15 +211,18 @@ function newTurnChoices(info) {
 
 function turnEndChoices(info) {
 	const currentPlayer = info.players[info.currentPlayerIndex];
-	const currentSquare = info.board.squares()[currentPlayer.position()];
-	return choicesForSquare(currentSquare, info.players, currentPlayer);
+	const currentPosition = determineIfPlayerRolledTooManyDoubles(info);
+	const currentSquare = info.board.squares()[currentPosition];
+	const finishingTurnLogic = getFinishingTurnLogic(info);
+
+	return choicesForSquare(currentSquare, info.players, currentPlayer, finishingTurnLogic);
 }
 
-function choicesForSquare(square, players, currentPlayer) {
+function choicesForSquare(square, players, currentPlayer, finishingTurnLogic) {
 	return square.match({
-		estate: choicesForProperty(square, players, currentPlayer),
-		railroad: choicesForProperty(square, players, currentPlayer),
-		company: choicesForProperty(square, players, currentPlayer),
+		estate: choicesForProperty(square, players, currentPlayer, finishingTurnLogic),
+		railroad: choicesForProperty(square, players, currentPlayer, finishingTurnLogic),
+		company: choicesForProperty(square, players, currentPlayer, finishingTurnLogic),
 		"luxury-tax": payLuxuryTax(currentPlayer),
 		"income-tax": payIncomeTax(currentPlayer),
 		"go-to-jail": goToJail,
@@ -236,7 +253,7 @@ function onlyFinishTurn() {
 	return [FinishTurnChoice.newChoice()];
 }
 
-function choicesForProperty(square, players, currentPlayer) {
+function choicesForProperty(square, players, currentPlayer, finishingTurnLogic) {
 	return function (_, price) {
 		const owner = getOwner(players, square);
 
@@ -251,10 +268,10 @@ function choicesForProperty(square, players, currentPlayer) {
 		}
 
 		if (!owner && currentPlayer.money() > price) {
-			return [BuyPropertyChoice.newChoice(square), FinishTurnChoice.newChoice()];
+			return [BuyPropertyChoice.newChoice(square)].concat(finishingTurnLogic());
 		}
 
-		return [FinishTurnChoice.newChoice()];
+		return finishingTurnLogic();
 	};
 }
 
@@ -286,4 +303,22 @@ function validIndex(array, index) {
 function deepEquals(left, right) {
 	if (left.length !== right.length) return false;
 	return _.every(left, (element, idx) => element.equals(right[idx]));
+}
+
+function getFinishingTurnLogic(info) {
+	const tradeChoices = info.players
+		.filter((_, index) => index !== info.currentPlayerIndex)
+		.map((player) => TradeChoice.newChoice(player));
+	
+	if (info.consecutiveDoubles && info.consecutiveDoubles < 3) {
+		return () => {return [MoveChoice.newChoice()]}//.concat(tradeChoices)};
+	} else {
+		return () => {return [FinishTurnChoice.newChoice()]}//.concat(tradeChoices)};
+	}
+}
+
+function determineIfPlayerRolledTooManyDoubles(info, doublesForJail = 3) {
+	const currentPlayer = info.players[info.currentPlayerIndex];
+	const newPosition = !info.consecutiveDoubles || info.consecutiveDoubles < doublesForJail ? currentPlayer.position() : info.board.jailPosition();
+	return newPosition;
 }

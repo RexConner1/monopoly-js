@@ -33,8 +33,11 @@ class RollDiceChoice {
 			"To compute next state, a roll-dice choice requires the result of a dice roll"
 		);
 
+		const isDouble = dice[0] === dice[1];
+		const newCount = isDouble ? state.consecutiveDoubles() + 1 : 0;
+
 		const newPlayers = state.players().map((player, index) => {
-			if (index === state.currentPlayerIndex()) {
+			if (index === state.currentPlayerIndex() && newCount < 3) {
 				return player.move(dice);
 			}
 			return player;
@@ -43,7 +46,8 @@ class RollDiceChoice {
 		return GameState.turnEndState({
 			board: state.board(),
 			players: newPlayers,
-			currentPlayerIndex: state.currentPlayerIndex()
+			currentPlayerIndex: state.currentPlayerIndex(),
+			consecutiveDoubles: newCount
 		});
 	}
 }

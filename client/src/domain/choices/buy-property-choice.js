@@ -55,6 +55,7 @@ const transferOwnership = (state, property) => {
 	return GameState.turnEndState({
 		board: state.board(),
 		players: newPlayers,
-		currentPlayerIndex: state.currentPlayerIndex()
+		currentPlayerIndex: state.currentPlayerIndex(),
+		consecutiveDoubles: state.consecutiveDoubles()
 	});
 };

@@ -67,7 +67,8 @@ class PayRentChoice {
 		return GameState.turnEndStateAfterPay({
 			board: state.board(),
 			players: newPlayers,
-			currentPlayerIndex: state.currentPlayerIndex()
+			currentPlayerIndex: state.currentPlayerIndex(),
+			consecutiveDoubles: state.consecutiveDoubles()
 		});
 	}
 }

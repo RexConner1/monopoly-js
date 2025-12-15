@@ -51,7 +51,8 @@ class RejectOfferChoice {
 		return GameState.turnStartState({
 			board: state.board(),
 			players: state.players(),
-			currentPlayerIndex: playerIndex
+			currentPlayerIndex: playerIndex,
+			consecutiveDoubles: state.consecutiveDoubles()
 		});
 	}
 }

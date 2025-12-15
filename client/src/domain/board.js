@@ -77,6 +77,10 @@ class Board {
 		};
 	}
 
+	jailPosition() {
+		return this._jailPosition;
+	}
+
 	jailBailout() {
 		return this._jailBailout;
 	}

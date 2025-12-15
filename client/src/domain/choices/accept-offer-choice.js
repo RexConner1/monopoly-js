@@ -57,7 +57,8 @@ class AcceptOfferChoice {
 		return GameState.turnStartState({
 			board: state.board(),
 			players: newPlayers,
-			currentPlayerIndex: playerIndex
+			currentPlayerIndex: playerIndex,
+			consecutiveDoubles: state.consecutiveDoubles()
 		});
 	}
 }
