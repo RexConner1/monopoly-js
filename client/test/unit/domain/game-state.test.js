@@ -45,14 +45,8 @@ describe('A turnStart state', function () {
 	});
 });
 
-describe('A turnEnd state', function () {
-	it('offers the finish-turn choice', function () {
-		var state = turnEndStateWithPlayers(testData.players());
-		var tradeChoices = getPlayerTradeChoices(state);
-		assertChoices(state, [FinishTurnChoice.newChoice()].concat(tradeChoices));
-	});
-
-	it('when player is not in jail and rolls doubles, player is offered to roll/trade again', function () {
+describe('When a player rolls doubles', function () {
+	it('and is not in jail, player is offered to roll/trade again', function () {
 		var choice = MoveChoice.newChoice();
 		var state = choice.computeNextState(games.turnStart(), [5, 5]);
 		var tradeChoices = getPlayerTradeChoices(state);
@@ -60,13 +54,45 @@ describe('A turnEnd state', function () {
 		assertChoices(state, [MoveChoice.newChoice()].concat(tradeChoices));
 	});
 
-	it('when player is not in jail and rolls doubles three times, player is sent to jail', function () {
+	it('three times and is not in jail, player is sent to jail', function () {
 		var choice = MoveChoice.newChoice();
 		var state = choice.computeNextState(games.turnStart(), [5, 5]);
 		state = choice.computeNextState(state, [5, 5]);
 		state = choice.computeNextState(state, [1, 1]);
 		var tradeChoices = getPlayerTradeChoices(state);
 				
+		assertChoices(state, [FinishTurnChoice.newChoice()].concat(tradeChoices));
+	});
+
+	it('a non-double roll resets consecutive doubles', function () {
+		var choice = MoveChoice.newChoice();
+
+		var state = choice.computeNextState(games.turnStart(), [5, 5]);
+		state = choice.computeNextState(state, [3, 4]);
+		state = choice.computeNextState(state, [6, 6]);
+
+		var tradeChoices = getPlayerTradeChoices(state);
+
+		assertChoices(state, [
+			BuyPropertyChoice.newChoice(Board.standard().properties().marvin), 
+			MoveChoice.newChoice()
+		].concat(tradeChoices));
+	});
+
+	it('to escape jail, it does not grant extra turns', function () {
+		var choice = TryDoubleRollChoice.newChoice();
+		var state = games.firstPlayerInJail();
+		state = choice.computeNextState(state, [6, 6]);
+		var tradeChoices = getPlayerTradeChoices(state);
+		
+		assertChoices(state, [FinishTurnChoice.newChoice()].concat(tradeChoices));
+	});
+});
+
+describe('A turnEnd state', function () {
+	it('offers the finish-turn choice', function () {
+		var state = turnEndStateWithPlayers(testData.players());
+		var tradeChoices = getPlayerTradeChoices(state);
 		assertChoices(state, [FinishTurnChoice.newChoice()].concat(tradeChoices));
 	});
 	
