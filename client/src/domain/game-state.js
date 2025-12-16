@@ -211,8 +211,7 @@ function newTurnChoices(info) {
 
 function turnEndChoices(info) {
 	const currentPlayer = info.players[info.currentPlayerIndex];
-	const currentPosition = determineIfPlayerRolledTooManyDoubles(info);
-	const currentSquare = info.board.squares()[currentPosition];
+	const currentSquare = info.board.squares()[currentPlayer.position()];
 	const finishingTurnLogic = getFinishingTurnLogic(info);
 
 	return choicesForSquare(currentSquare, info.players, currentPlayer, finishingTurnLogic);
@@ -315,11 +314,4 @@ function getFinishingTurnLogic(info) {
 	} else {
 		return () => {return [FinishTurnChoice.newChoice()]}//.concat(tradeChoices)};
 	}
-}
-
-function determineIfPlayerRolledTooManyDoubles(info, doublesForJail = 3) {
-	const currentPlayer = info.players[info.currentPlayerIndex];
-	const tooManyDoubles = info.consecutiveDoubles && info.consecutiveDoubles >= doublesForJail;
-	const newPosition = !tooManyDoubles ? currentPlayer.position() : info.board.jailPosition();
-	return newPosition;
 }

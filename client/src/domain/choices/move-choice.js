@@ -38,8 +38,8 @@ class RollDiceChoice {
 		const tooManyDoubles = newCount >= 3;
 
 		const newPlayers = state.players().map((player, index) => {
-			if (index === state.currentPlayerIndex() && !tooManyDoubles) {
-				return player.move(dice);
+			if (index === state.currentPlayerIndex()) {
+				return !tooManyDoubles ? player.move(dice) : player.jail();
 			}
 			return player;
 		});
