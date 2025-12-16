@@ -226,7 +226,7 @@ function choicesForSquare(square, players, currentPlayer, finishingTurnLogic) {
 		"luxury-tax": payLuxuryTax(currentPlayer),
 		"income-tax": payIncomeTax(currentPlayer),
 		"go-to-jail": goToJail,
-		_: onlyFinishTurn
+		_: () => onlyFinishTurn(finishingTurnLogic)
 	});
 }
 
@@ -249,8 +249,8 @@ function payIncomeTax(currentPlayer) {
 	};
 }
 
-function onlyFinishTurn() {
-	return [FinishTurnChoice.newChoice()];
+function onlyFinishTurn(finishingTurnLogic) {
+	return finishingTurnLogic();
 }
 
 function choicesForProperty(square, players, currentPlayer, finishingTurnLogic) {
@@ -319,6 +319,7 @@ function getFinishingTurnLogic(info) {
 
 function determineIfPlayerRolledTooManyDoubles(info, doublesForJail = 3) {
 	const currentPlayer = info.players[info.currentPlayerIndex];
-	const newPosition = !info.consecutiveDoubles || info.consecutiveDoubles < doublesForJail ? currentPlayer.position() : info.board.jailPosition();
+	const tooManyDoubles = info.consecutiveDoubles && info.consecutiveDoubles >= doublesForJail;
+	const newPosition = !tooManyDoubles ? currentPlayer.position() : info.board.jailPosition();
 	return newPosition;
 }

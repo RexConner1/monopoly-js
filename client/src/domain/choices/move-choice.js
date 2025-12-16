@@ -35,9 +35,10 @@ class RollDiceChoice {
 
 		const isDouble = dice[0] === dice[1];
 		const newCount = isDouble ? state.consecutiveDoubles() + 1 : 0;
+		const tooManyDoubles = newCount >= 3;
 
 		const newPlayers = state.players().map((player, index) => {
-			if (index === state.currentPlayerIndex() && newCount < 3) {
+			if (index === state.currentPlayerIndex() && !tooManyDoubles) {
 				return player.move(dice);
 			}
 			return player;
