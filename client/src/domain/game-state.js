@@ -309,8 +309,8 @@ function getFinishingTurnLogic(info) {
 		.filter((_, index) => index !== info.currentPlayerIndex)
 		.map((player) => TradeChoice.newChoice(player));
 	
-	if (info.consecutiveDoubles && info.consecutiveDoubles < 3) {
-		return () => {return [MoveChoice.newChoice()]}//.concat(tradeChoices)};
+	if (info.consecutiveDoubles) {
+		return () => {return [MoveChoice.newChoice()].concat(tradeChoices)};
 	} else {
 		return () => {return [FinishTurnChoice.newChoice()]}//.concat(tradeChoices)};
 	}

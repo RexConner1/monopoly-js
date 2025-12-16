@@ -55,6 +55,36 @@ describe('A turnEnd state', function () {
 		
 		assertChoices(state, [FinishTurnChoice.newChoice()]);
 	});
+
+	it('when player is not in jail and rolls doubles, player is offered to roll/trade again', function () {
+		var choice = MoveChoice.newChoice();
+		var state = choice.computeNextState(games.turnStart(), [5, 5]);
+
+		var tradeChoices = _.filter(state.players(), function (player, index) {
+			return index !== state.currentPlayerIndex();
+		})
+		.map(function (player) {
+			return TradeChoice.newChoice(player);
+		});
+				
+		assertChoices(state, [MoveChoice.newChoice()].concat(tradeChoices));
+	});
+
+	it('when player is not in jail and rolls doubles three times, player is sent to jail', function () {
+		var choice = MoveChoice.newChoice();
+		var state = choice.computeNextState(games.turnStart(), [5, 5]);
+		state = choice.computeNextState(state, [5, 5]);
+		state = choice.computeNextState(state, [1, 1]);
+
+		var tradeChoices = _.filter(state.players(), function (player, index) {
+			return index !== state.currentPlayerIndex();
+		})
+		.map(function (player) {
+			return TradeChoice.newChoice(player);
+		});
+				
+		assertChoices(state, [FinishTurnChoice.newChoice()]);
+	});
 	
 	describe('when current player is on a property', function () {
 		it('if it is not owned, offers to buy it', function () {

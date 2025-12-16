@@ -39,7 +39,7 @@ class RollDiceChoice {
 
 		const newPlayers = state.players().map((player, index) => {
 			if (index === state.currentPlayerIndex()) {
-				return !tooManyDoubles ? player.move(dice) : player.jail();
+				return tooManyDoubles ? player.jail() : player.move(dice);
 			}
 			return player;
 		});
@@ -48,7 +48,7 @@ class RollDiceChoice {
 			board: state.board(),
 			players: newPlayers,
 			currentPlayerIndex: state.currentPlayerIndex(),
-			consecutiveDoubles: newCount
+			consecutiveDoubles: tooManyDoubles ? 0 : newCount
 		});
 	}
 }
