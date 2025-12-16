@@ -17,6 +17,7 @@ var TryDoubleRollChoice = require('@domain/choices/try-double-roll-choice');
 
 var games = require('@test/unit/domain/sample-games');
 var testData = require('@test/unit/test-data');
+const { get } = require('http');
 
 describe('A turnStart state', function () {
 	describe('when player is in jail', function () {
@@ -38,12 +39,7 @@ describe('A turnStart state', function () {
 	it('when player is not in jail, offers the roll-dice choice' +
 		'and a choice to trade with each of the other players', function () {
 		var state = games.turnStart();
-		var tradeChoices = _.filter(state.players(), function (player, index) {
-			return index !== state.currentPlayerIndex();
-		})
-		.map(function (player) {
-			return TradeChoice.newChoice(player);
-		});
+		var tradeChoices = getPlayerTradeChoices(state);
 				
 		assertChoices(state, [MoveChoice.newChoice()].concat(tradeChoices));
 	});
@@ -52,20 +48,14 @@ describe('A turnStart state', function () {
 describe('A turnEnd state', function () {
 	it('offers the finish-turn choice', function () {
 		var state = turnEndStateWithPlayers(testData.players());
-		
-		assertChoices(state, [FinishTurnChoice.newChoice()]);
+		var tradeChoices = getPlayerTradeChoices(state);
+		assertChoices(state, [FinishTurnChoice.newChoice()].concat(tradeChoices));
 	});
 
 	it('when player is not in jail and rolls doubles, player is offered to roll/trade again', function () {
 		var choice = MoveChoice.newChoice();
 		var state = choice.computeNextState(games.turnStart(), [5, 5]);
-
-		var tradeChoices = _.filter(state.players(), function (player, index) {
-			return index !== state.currentPlayerIndex();
-		})
-		.map(function (player) {
-			return TradeChoice.newChoice(player);
-		});
+		var tradeChoices = getPlayerTradeChoices(state);
 				
 		assertChoices(state, [MoveChoice.newChoice()].concat(tradeChoices));
 	});
@@ -75,15 +65,9 @@ describe('A turnEnd state', function () {
 		var state = choice.computeNextState(games.turnStart(), [5, 5]);
 		state = choice.computeNextState(state, [5, 5]);
 		state = choice.computeNextState(state, [1, 1]);
-
-		var tradeChoices = _.filter(state.players(), function (player, index) {
-			return index !== state.currentPlayerIndex();
-		})
-		.map(function (player) {
-			return TradeChoice.newChoice(player);
-		});
+		var tradeChoices = getPlayerTradeChoices(state);
 				
-		assertChoices(state, [FinishTurnChoice.newChoice()]);
+		assertChoices(state, [FinishTurnChoice.newChoice()].concat(tradeChoices));
 	});
 	
 	describe('when current player is on a property', function () {
@@ -207,12 +191,14 @@ describe('A turnEnd state', function () {
 
 function assertNoBuyPropertyChoiceWhenOnPropertyTooExpensive() {
 	var state = games.playerBrokeOnEstate();
-	assertChoices(state, [FinishTurnChoice.newChoice()]);
+	var tradeChoices = getPlayerTradeChoices(state);
+	assertChoices(state, [FinishTurnChoice.newChoice()].concat(tradeChoices));
 }
 
 function assertNoBuyPropertyChoiceWhenOnPropertyWithOwner() {
 	var state = games.playerOnOwnedEstate();
-	assertChoices(state, [FinishTurnChoice.newChoice()]);
+	var tradeChoices = getPlayerTradeChoices(state);
+	assertChoices(state, [FinishTurnChoice.newChoice()].concat(tradeChoices));
 }
 
 function assertBuyPropertyChoiceWhenOnPropertyWithoutOwner() {
@@ -223,26 +209,29 @@ function assertBuyPropertyChoiceWhenOnPropertyWithoutOwner() {
 
 function assertBuyPropertyChoiceWhenOnEstateWithoutOwner() {
 	var state = games.playerOnEstate();
+	var tradeChoices = getPlayerTradeChoices(state);
 	assertChoices(state, [
 		BuyPropertyChoice.newChoice(Board.standard().properties().mediterranean),
 		FinishTurnChoice.newChoice()
-	]);
+	].concat(tradeChoices));
 }
 
 function assertBuyPropertyChoiceWhenOnRailroadWithoutOwner() {
 	var state = games.playerOnRailroad();
+	var tradeChoices = getPlayerTradeChoices(state);
 	assertChoices(state, [
 		BuyPropertyChoice.newChoice(Board.standard().properties().readingRailroad),
 		FinishTurnChoice.newChoice()
-	]);
+	].concat(tradeChoices));
 }
 
 function assertBuyPropertyChoiceWhenOnCompanyWithoutOwner() {
 	var state = games.playerOnCompany();
+	var tradeChoices = getPlayerTradeChoices(state);
 	assertChoices(state, [
 		BuyPropertyChoice.newChoice(Board.standard().properties().electricCompany),
 		FinishTurnChoice.newChoice()
-	]);
+	].concat(tradeChoices));
 }
 
 function assertNoPayRentChoiceWhenAlreadyPaidPropertyRent() {
@@ -253,27 +242,32 @@ function assertNoPayRentChoiceWhenAlreadyPaidPropertyRent() {
 
 function assertNoPayRentChoiceWhenAlreadyPaidEstateRent() {
 	var state = turnEndStateWithPlayers(playerOnEstateOwnedByOther(), true);
-	assertChoices(state, [FinishTurnChoice.newChoice()]);
+	var tradeChoices = getPlayerTradeChoices(state);
+	assertChoices(state, [FinishTurnChoice.newChoice()].concat(tradeChoices));
 }
 
 function assertNoPayRentChoiceWhenAlreadyPaidRailroadRent() {
 	var state = games.playerOnRailroadOwnedByOtherWithOneRailroad(true);
-	assertChoices(state, [FinishTurnChoice.newChoice()]);
+	var tradeChoices = getPlayerTradeChoices(state);
+	assertChoices(state, [FinishTurnChoice.newChoice()].concat(tradeChoices));
 }
 
 function assertNoPayRentChoiceWhenAlreadyPaidCompanyRent() {
 	var state = games.playerOnCompanyOwnedByOther(true);
-	assertChoices(state, [FinishTurnChoice.newChoice()]);
+	var tradeChoices = getPlayerTradeChoices(state);
+	assertChoices(state, [FinishTurnChoice.newChoice()].concat(tradeChoices));
 }
 
 function assertNoPayTaxChoiceWhenAlreadyPaidLuxuryTax() {
 	var state = games.playerOnLuxuryTax(true);
-	assertChoices(state, [FinishTurnChoice.newChoice()]);
+	var tradeChoices = getPlayerTradeChoices(state);
+	assertChoices(state, [FinishTurnChoice.newChoice()].concat(tradeChoices));
 }
 
 function assertNoPayTaxChoiceWhenAlreadyPaidIncomeTax() {
 	var state = games.playerOnIncomeTax(true);
-	assertChoices(state, [FinishTurnChoice.newChoice()]);
+	var tradeChoices = getPlayerTradeChoices(state);
+	assertChoices(state, [FinishTurnChoice.newChoice()].concat(tradeChoices));
 }
 
 function assertBankruptcyChoiceWhenPropertyRentIsTooHigh() {
@@ -359,4 +353,13 @@ function playerOnEstateOwnedByOther(property, squareIndex) {
 		players[1].buyProperty(property || Board.standard().properties().mediterranean),
 		players[2]
 	];
+}
+
+function getPlayerTradeChoices(state) {
+	return _.filter(state.players(), function (player, index) {
+		return index !== state.currentPlayerIndex();
+	})
+	.map(function (player) {
+		return TradeChoice.newChoice(player);
+	});
 }

@@ -42,7 +42,7 @@ describe('A PayDeposit Choice', function () {
 		});
 		
 		it('offers only the FinishTurnChoice', function () {
-			expect(nextState.choices().length).to.eql(1);
+			expect(nextState.choices().length).to.eql(3);
 			expect(nextState.choices()[0].equals(FinishTurnChoice.newChoice())).to.be(true);
 		});
 	});

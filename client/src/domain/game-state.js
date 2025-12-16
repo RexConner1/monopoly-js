@@ -312,6 +312,6 @@ function getFinishingTurnLogic(info) {
 	if (info.consecutiveDoubles) {
 		return () => {return [MoveChoice.newChoice()].concat(tradeChoices)};
 	} else {
-		return () => {return [FinishTurnChoice.newChoice()]}//.concat(tradeChoices)};
+		return () => {return [FinishTurnChoice.newChoice()].concat(tradeChoices)};
 	}
 }

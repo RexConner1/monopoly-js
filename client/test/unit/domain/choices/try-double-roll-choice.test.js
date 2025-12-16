@@ -45,7 +45,7 @@ describe('A TryDoubleRoll Choice', function () {
 				expect(player.equals(nextState.players()[index])).to.be(true);					
 			});
 			
-			expect(nextState.choices().length).to.eql(1);
+			expect(nextState.choices().length).to.eql(3);
 			expect(nextState.choices()[0].equals(FinishTurnChoice.newChoice()));
 		});
 	});

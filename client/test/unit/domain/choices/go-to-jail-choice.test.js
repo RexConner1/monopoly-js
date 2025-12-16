@@ -36,7 +36,7 @@ describe('A Go To Jail Choice', function () {
 		});
 		
 		it('offers the FinishTurnChoice', function () {
-			expect(nextState.choices().length).to.eql(1);
+			expect(nextState.choices().length).to.eql(3);
 			expect(nextState.choices()[0].equals(FinishTurnChoice.newChoice())).to.be(true);
 		});
 	});
